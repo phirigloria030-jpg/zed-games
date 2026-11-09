@@ -1,10 +1,17 @@
 workflows:
-  default-workflow:
-    name: ZED GAMES Build
+  android-workflow:
+    name: ZED GAMES Android
+    max_build_duration: 60
+    instance_type: mac_mini_m1
     environment:
       flutter: stable
     scripts:
-      - flutter pub get
-      - flutter build apk --release
+      - name: Create Android folder
+        script: |
+          flutter create . --platforms=android
+          flutter pub get
+      - name: Build APK
+        script: |
+          flutter build apk --release --no-tree-shake-icons
     artifacts:
-      - build/**/outputs/**/*.apk
+      - build/app/outputs/flutter-apk/*.apk
