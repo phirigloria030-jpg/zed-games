@@ -11,10 +11,13 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
-      - name: Create Android folder and Build
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      - name: Fix folders and Build APK
         run: |
-          flutter create . --platforms=android
+          mkdir -p assets/sounds
+          touch assets/sounds/empty.txt
+          flutter create . --platforms=android --no-overwrite
           flutter pub get
           flutter build apk --release --no-tree-shake-icons
       - name: Upload APK
