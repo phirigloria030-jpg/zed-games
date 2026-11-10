@@ -22,5 +22,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ZED-GAMES-APK
+          name: ZED_GAMES-APK
           path: build/app/outputs/flutter-apk/app-release.apk
