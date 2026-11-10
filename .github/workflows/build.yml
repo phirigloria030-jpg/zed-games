@@ -12,15 +12,19 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
-      - name: Fix folders and Build APK
+      - name: Build APK with games
         run: |
           mkdir -p assets/sounds
           echo "placeholder" > assets/sounds/placeholder.txt
+          cp lib/main.dart /tmp/my_games.dart
+          cp pubspec.yaml /tmp/my_pubspec.yaml
           flutter create . --project-name zed_games --platforms=android --overwrite
+          cp /tmp/my_games.dart lib/main.dart
+          cp /tmp/my_pubspec.yaml pubspec.yaml
           flutter pub get
           flutter build apk --release
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ZED_GAMES-APK
+          name: ZED-GAMES-APK
           path: build/app/outputs/flutter-apk/app-release.apk
