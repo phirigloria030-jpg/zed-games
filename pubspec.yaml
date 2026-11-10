@@ -1,5 +1,5 @@
 name: zed_games
-description: ZED GAMES Zambia 4 action games with vibration
+description: ZED GAMES Zambia with sound and vibration
 publish_to: 'none'
 version: 1.0.0+1
 environment:
@@ -8,5 +8,9 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  audioplayers: ^6.1.0
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sounds/
