@@ -1,5 +1,5 @@
 name: zed_games
-description: ZED GAMES with sound and vibration
+description: ZED GAMES with ads and audio
 publish_to: 'none'
 version: 1.0.0+1
 environment:
@@ -8,6 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
   audioplayers: 5.2.1
+  google_mobile_ads: 5.1.0
 flutter:
   uses-material-design: true
   assets:
