@@ -10,7 +10,8 @@ void playSound() async {
   try {
     await player.play(AssetSource('sounds/click.mp3'));
   } catch(e) {
-    HapticFeedback.mediumImpact();
+    // If sound file not there, just vibrate
+    HapticFeedback.lightImpact();
   }
 }
 
@@ -18,25 +19,25 @@ void main() => runApp(ZedGamesApp());
 
 class ZedGamesApp extends StatelessWidget {
   @override Widget build(BuildContext context) {
-    return MaterialApp(title: 'ZED GAMES', debugShowCheckedModeBanner: false, theme: ThemeData(primarySwatch: Colors.green), home: HomeScreen());
+    return MaterialApp(title: 'ZED GAMES', debugShowCheckedModeBanner: false, home: HomeScreen());
   }
 }
 
 class HomeScreen extends StatelessWidget {
   @override Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('🇿🇲 ZED GAMES - SOUND + VIBRATE'), backgroundColor: Colors.green[800], centerTitle: true),
+      appBar: AppBar(title: Text('🇿🇲 ZED GAMES - SOUND!'), backgroundColor: Colors.green[800], centerTitle: true),
       body: GridView.count(crossAxisCount: 2, padding: EdgeInsets.all(16), crossAxisSpacing: 16, mainAxisSpacing: 16, children: [
-        gameCard(context, 'TAP\nMASTER', Colors.orange, Icons.touch_app, TapGame()),
-        gameCard(context, 'MEMORY\nMATCH', Colors.blue, Icons.memory, MemoryGame()),
-        gameCard(context, 'DODGE\nBALLS', Colors.red, Icons.sports_baseball, DodgeGame()),
-        gameCard(context, 'SNAKE\nZAMBIA', Colors.green, Icons.games, SnakeGame()),
+        gameCard(context, 'TAP MASTER', Colors.orange, Icons.touch_app, TapGame()),
+        gameCard(context, 'MEMORY MATCH', Colors.blue, Icons.memory, MemoryGame()),
+        gameCard(context, 'DODGE BALLS', Colors.red, Icons.sports_baseball, DodgeGame()),
+        gameCard(context, 'SNAKE ZAMBIA', Colors.green, Icons.games, SnakeGame()),
       ]),
     );
   }
   Widget gameCard(BuildContext ctx, String title, Color c, IconData icon, Widget game) {
     return GestureDetector(onTap: () { HapticFeedback.mediumImpact(); playSound(); Navigator.push(ctx, MaterialPageRoute(builder: (_) => game)); },
-      child: Container(decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(20)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 50, color: Colors.white), SizedBox(height: 10), Text(title, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18))])));
+      child: Container(decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(20)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 50, color: Colors.white), SizedBox(height: 10), Text(title, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16))])));
   }
 }
 
