@@ -7,7 +7,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  audioplayers: 5.2.1
+  audioplayers: 6.2.1
   google_mobile_ads: 5.1.0
 flutter:
   uses-material-design: true
