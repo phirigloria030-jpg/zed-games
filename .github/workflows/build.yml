@@ -21,10 +21,10 @@ jobs:
           flutter create . --project-name zed_games --platforms=android --overwrite
           cp /tmp/my_games.dart lib/main.dart
           cp /tmp/my_pubspec.yaml pubspec.yaml
-          sed -i 's/minSdkVersion 21/minSdkVersion 21/' android/app/build.gradle || true
-          sed -i 's/minSdkVersion 21/minSdkVersion 21/' android/app/build.gradle || true
-          sed -i 's/minSdk 21/minSdk 21/' android/app/build.gradle || true
-          sed -i 's/minSdk 21/minSdk 21/' android/app/build.gradle || true
+          sed -i 's/minSdkVersion 21/minSdkVersion 19/' android/app/build.gradle || true
+          sed -i 's/minSdkVersion 21/minSdkVersion 19/' android/app/build.gradle || true
+          sed -i 's/minSdk 21/minSdk 16/' android/app/build.gradle || true
+          sed -i 's/minSdk 21/minSdk 16/' android/app/build.gradle || true
           flutter pub get
           flutter build apk --release
       - name: Upload APK
