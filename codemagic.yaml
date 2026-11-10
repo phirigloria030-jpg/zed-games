@@ -1,34 +1,24 @@
 workflows:
   android-workflow:
-    name: ZED GAMES Android
+    name: Android Workflow
     max_build_duration: 60
     instance_type: mac_mini_m1
     environment:
       flutter: stable
     scripts:
-      - name: Create Android and iOS folders
+      - name: Create folders and fix AdMob
         script: |
-          flutter create . --platforms=android,ios
+          flutter create . --platforms=android
           flutter pub get
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST" ]; then
+            if ! grep -q "APPLICATION_ID" "$MANIFEST"; then
+              sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"\/>' "$MANIFEST"
+            fi
+            echo "=== MANIFEST OK ==="
+          fi
       - name: Build APK
         script: |
-          flutter build apk --release --no-tree-shake-icons
-    artifacts:
-      - build/app/outputs/flutter-apk/*.apk
-
-  default-workflow:
-    name: Default
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      flutter: stable
-    scripts:
-      - name: Create folders
-        script: |
-          flutter create . --platforms=android,ios
-          flutter pub get
-      - name: Build APK
-        script: |
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
