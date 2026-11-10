@@ -21,6 +21,10 @@ jobs:
           flutter create . --project-name zed_games --platforms=android --overwrite
           cp /tmp/my_games.dart lib/main.dart
           cp /tmp/my_pubspec.yaml pubspec.yaml
+          sed -i 's/compileSdkVersion.*/compileSdkVersion 35/' android/app/build.gradle || true
+          sed -i 's/compileSdk .*/compileSdk 35/' android/app/build.gradle || true
+          sed -i 's/targetSdkVersion.*/targetSdkVersion 35/' android/app/build.gradle || true
+          sed -i 's/targetSdk .*/targetSdk 35/' android/app/build.gradle || true
           flutter pub get
           flutter build apk --release
       - name: Upload APK
