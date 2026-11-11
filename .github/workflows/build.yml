@@ -1,29 +1,26 @@
 name: Build Zed Games APK
 on:
   push:
-    branches: [main, master]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
-      - name: Fix Android
-        run: |
-          mkdir -p /tmp/save
-          cp -r lib /tmp/save || true
-          cp pubspec.yaml /tmp/save || true
-          cp -r assets /tmp/save || true
-          rm -rf android
-          flutter create . --org com.zedgames.app --platforms android
-          cat > android/app/src/main/AndroidManifest.xml <<'MANIFEST'
-          <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.zedgames.app">
-              <application android:label="Zed Games" android:name="${applicationName}" android:icon="@mipmap/launcher_icon">
-                  <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
-                      <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
-                      <intent-filter>
-                         
+          flutter-version: 'stable'
+      - name: Get packages
+        run: flutter pub get
+      - name: Build APK
+        run: flutter build apk --release
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: zed-games-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
