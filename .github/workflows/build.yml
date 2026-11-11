@@ -9,29 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          
-      - name: Keep your games and fix crash + logo
-        run: |
-          cp lib/main.dart /tmp/my_games.dart || true
-          flutter create . --platforms=android --project-name zed_games
-          cp /tmp/my_games.dart lib/main.dart || true
-          flutter pub get
-          python3 << 'PY'
-          import pathlib
-          mf=pathlib.Path("android/app/src/main/AndroidManifest.xml")
-          t=mf.read_text()
-          if "APPLICATION_ID" not in t:
-              t=t.replace("<application", '<application\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>',1)
-              mf.write_text(t)
-          print("Games kept, crash fixed")
-          PY
-          dart run flutter_launcher_icons || echo "icon done"
 
-      - name: Build APK
+      - name: Save your real games and fix broken files
+        run: |
+          mkdir -p /tmp/save
+          cp -r lib /tmp/save/ || true
+          cp pubspec.yaml /tmp/save/ || true
+          cp -r assets /tmp/save/ || true
+          rm -rf android
+          flutter create . --project-name zed_games --org com.zedgames.app --platforms android
+          rm -rf lib
+          cp -r /tmp/save/lib .
+          cp /tmp/save/pubspec.yaml . || true
+          cp -r /tmp/save/assets . || true
+          echo "Your real games saved and broken manifest fixed!"
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Build APK - your real games
         run: flutter build apk --release
 
       - name: Upload APK
