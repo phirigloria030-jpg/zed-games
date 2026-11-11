@@ -1,28 +1,4 @@
-workflows:
-  android-workflow:
-    name: Android Workflow
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      flutter: stable
-    scripts:
-      - name: Keep your games + fix crash + new logo
-        script: |
-          cp lib/main.dart /tmp/my_games.dart
-          flutter create . --platforms=android
-          cp /tmp/my_games.dart lib/main.dart
-          flutter pub get
-          python3 << 'PY'
-          import pathlib
-          mf=pathlib.Path("android/app/src/main/AndroidManifest.xml")
-          t=mf.read_text()
-          if "APPLICATION_ID" not in t:
-              t=t.replace("<application", '<application\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>',1)
-              mf.write_text(t)
-          print("Crash fixed, games kept!")
-          PY
-          dart run flutter_launcher_icons || echo "icon done"
-      - name: Build APK
-        script: flutter build apk --release
-    artifacts:
-      - build/app/outputs/flutter-apk/*.apk
+#!/bin/sh
+set -e
+flutter pub get
+flutter build apk --release
