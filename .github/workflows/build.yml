@@ -16,6 +16,11 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      - name: Fix Android v1 Embedding - Recreate android folder
+        run: |
+          rm -rf android
+          flutter create . --platforms=android --project-name zed_games --org com.example
+          flutter pub get
       - name: Get packages
         run: flutter pub get
       - name: Build APK
