@@ -1,34 +1,41 @@
-name: Build ZED GAMES APK
-on: [push]
+name: Build Zed Games APK
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+      
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
-      - name: Build APK with games + ads + sound
+          flutter-version: 'stable'
+          
+      - name: Keep your games and fix crash + logo
         run: |
-          mkdir -p assets/sounds
-          echo "placeholder" > assets/sounds/placeholder.txt
-          cp lib/main.dart /tmp/my_games.dart
-          cp pubspec.yaml /tmp/my_pubspec.yaml
-          flutter create . --project-name zed_games --platforms=android --overwrite
-          cp /tmp/my_games.dart lib/main.dart
-          cp /tmp/my_pubspec.yaml pubspec.yaml
-          sed -i 's/minSdkVersion 21/minSdkVersion 19/' android/app/build.gradle || true
-          sed -i 's/minSdkVersion 21/minSdkVersion 19/' android/app/build.gradle || true
-          sed -i 's/minSdk 21/minSdk 16/' android/app/build.gradle || true
-          sed -i 's/minSdk 21/minSdk 16/' android/app/build.gradle || true
+          cp lib/main.dart /tmp/my_games.dart || true
+          flutter create . --platforms=android --project-name zed_games
+          cp /tmp/my_games.dart lib/main.dart || true
           flutter pub get
-          flutter build apk --release
+          python3 << 'PY'
+          import pathlib
+          mf=pathlib.Path("android/app/src/main/AndroidManifest.xml")
+          t=mf.read_text()
+          if "APPLICATION_ID" not in t:
+              t=t.replace("<application", '<application\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>',1)
+              mf.write_text(t)
+          print("Games kept, crash fixed")
+          PY
+          dart run flutter_launcher_icons || echo "icon done"
+
+      - name: Build APK
+        run: flutter build apk --release
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ZED-GAMES-APK
+          name: zed-games-apk
           path: build/app/outputs/flutter-apk/app-release.apk
