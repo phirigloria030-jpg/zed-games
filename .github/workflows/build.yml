@@ -16,20 +16,24 @@ jobs:
         with:
           channel: 'stable'
           cache: true
-      - name: Fix missing assets folders
+      - name: Fix missing assets
         run: |
-          mkdir -p assets/sounds
-          mkdir -p assets/images
-          touch assets/sounds/.keep
-          touch assets/images/.keep
-      - name: Fix Android v1 Embedding
+          mkdir -p assets/sounds assets/images
+          touch assets/sounds/.keep assets/images/.keep
+      - name: Recreate Android folder
         run: |
           rm -rf android
           flutter create . --platforms=android --project-name zed_games --org com.example
+      - name: Add AdMob ID and Permissions
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"\/>' $MANIFEST
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"\/>' $MANIFEST
+          cat $MANIFEST
       - name: Get packages
         run: flutter pub get
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --verbose
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
