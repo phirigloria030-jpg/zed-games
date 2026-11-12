@@ -2,7 +2,6 @@ name: Build Zed Games APK
 on:
   push:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,26 +13,24 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: true
-      - name: Fix missing assets
+          channel: stable
+          flutter-version: 3.24.5
+      - name: Fix missing folders
         run: |
-          mkdir -p assets/sounds assets/images
-          touch assets/sounds/.keep assets/images/.keep
-      - name: Recreate Android folder
+          mkdir -p assets/sounds assets/images lib
+          touch assets/sounds/.keep
+      - name: Clean and Recreate Android
         run: |
           rm -rf android
-          flutter create . --platforms=android --project-name zed_games --org com.example
-      - name: Add AdMob ID and Permissions
+          flutter create . --platforms android
+      - name: Add AdMob
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"\/>' $MANIFEST
-          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"\/>' $MANIFEST
-          cat $MANIFEST
-      - name: Get packages
+          grep -q "APPLICATION_ID" $MANIFEST || sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"\/>' $MANIFEST
+      - name: Pub Get
         run: flutter pub get
       - name: Build APK
-        run: flutter build apk --release --verbose
+        run: flutter build apk --release
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
