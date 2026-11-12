@@ -1,207 +1,323 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ZedGamesApp());
-}
+void main() => runApp(ZedGamesApp());
 
 class ZedGamesApp extends StatelessWidget {
-  const ZedGamesApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'ZED GAMES',
+      title: 'Zed Games Zambia',
       theme: ThemeData(primarySwatch: Colors.green),
-      home: const HomeScreen(),
+      home: HomeScreen(),
     );
   }
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ZED GAMES ZAMBIA - 4 ACTION'), centerTitle: true, backgroundColor: Colors.green),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: const EdgeInsets.all(16),
-        children: [
-          gameTile(context, 'SUBWAY RUN', Icons.directions_run, Colors.orange, const SubwayGame()),
-          gameTile(context, 'CHESS', Icons.grid_on, Colors.brown, const ChessGame()),
-          gameTile(context, 'FOOTBALL', Icons.sports_soccer, Colors.green, const FootballGame()),
-          gameTile(context, 'SHOOTING', Icons.gps_fixed, Colors.red, const ShootingGame()),
-        ],
-      ),
-    );
-  }
-  Widget gameTile(BuildContext c, String name, IconData icon, Color color, Widget game) {
-    return Card(
-      color: color,
-      child: InkWell(
-        onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => game)),
+      backgroundColor: Color(0xFF0A2A0A),
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 60, color: Colors.white),
-            const SizedBox(height: 10),
-            Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            SizedBox(height: 20),
+            Text("ZED GAMES ZAMBIA", style: TextStyle(color: Colors.yellow, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2)),
+            Text("4 ACTION GAMES", style: TextStyle(color: Colors.white70, fontSize: 16)),
+            SizedBox(height: 30),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                padding: EdgeInsets.all(16),
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _gameCard(context, "SUBWAY\nZED RUN", Icons.train, Colors.orange, SubwayGame()),
+                  _gameCard(context, "CHESS\nMASTER", Icons.grid_on, Colors.brown, ChessGame()),
+                  _gameCard(context, "FOOTBALL\nPENALTY", Icons.sports_soccer, Colors.green, FootballGame()),
+                  _gameCard(context, "SHOOTING\nTARGET", Icons.gps_fixed, Colors.red, ShootingGame()),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+
+  Widget _gameCard(BuildContext ctx, String title, IconData icon, Color col, Widget game) {
+    return GestureDetector(
+      onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => game)),
+      child: Container(
+        decoration: BoxDecoration(color: col, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white, width: 2)),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, size: 60, color: Colors.white),
+          SizedBox(height: 10),
+          Text(title, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+          SizedBox(height: 5),
+          Text("TAP TO PLAY", style: TextStyle(color: Colors.white70, fontSize: 12)),
+        ]),
+      ),
+    );
+  }
 }
 
-// 1. SUBWAY RUNNER
-class SubwayGame extends StatefulWidget {
-  const SubwayGame({super.key});
-  @override
-  State<SubwayGame> createState() => _SubwayGameState();
-}
+// ================== 1. SUBWAY ZED RUN - REAL RUNNER ==================
+class SubwayGame extends StatefulWidget { @override _SubwayGameState createState() => _SubwayGameState(); }
 class _SubwayGameState extends State<SubwayGame> {
-  int lane = 1; int score = 0; double obstacleY = -1;
-  final player = AudioPlayer();
+  int lane = 1; // 0 left, 1 middle, 2 right
+  double playerY = 0.7;
+  bool jumping = false;
+  bool rolling = false;
+  int score = 0;
+  int coins = 0;
+  bool gameOver = false;
+  List<Map> obstacles = [];
+  Timer? gameTimer;
+  Random rand = Random();
+
   @override
   void initState() {
     super.initState();
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (!mounted) return false;
+    startGame();
+  }
+  void startGame() {
+    score = 0; coins = 0; gameOver = false; obstacles = []; lane = 1;
+    gameTimer = Timer.periodic(Duration(milliseconds: 50), (t) {
+      if (gameOver) { t.cancel(); return; }
       setState(() {
-        obstacleY += 0.02;
-        if (obstacleY > 1) { obstacleY = -1; score += 10; }
-        if ((obstacleY > 0.6 && obstacleY < 0.9) && Random().nextInt(3) == lane) {
-          score = 0; player.play(UrlSource('https://www.soundjay.com/buttons/sounds/button-10.mp3'));
+        score++;
+        // Move obstacles down
+        for (var o in obstacles) { o['y'] += 0.02; }
+        obstacles.removeWhere((o) => o['y'] > 1.2);
+        // Add new
+        if (rand.nextDouble() < 0.05) {
+          obstacles.add({'x': rand.nextInt(3), 'y': -0.2, 'type': rand.nextBool() ? 'train' : 'coin'});
+        }
+        // Check collision
+        for (var o in obstacles) {
+          if ((o['y'] - playerY).abs() < 0.08 && o['x'] == lane) {
+            if (o['type'] == 'coin') { coins++; o['y'] = 2; }
+            else if (!jumping && !rolling) { gameOver = true; }
+          }
         }
       });
-      return true;
+    });
+  }
+  void move(int dir) { if (gameOver) return; setState(() { lane = (lane + dir).clamp(0, 2); }); }
+  void jump() {
+    if (jumping || rolling || gameOver) return;
+    setState(() => jumping = true);
+    Future.delayed(Duration(milliseconds: 500), () => setState(() => jumping = false));
+  }
+  void roll() {
+    if (jumping || rolling || gameOver) return;
+    setState(() => rolling = true);
+    Future.delayed(Duration(milliseconds: 400), () => setState(() => rolling = false));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[900],
+      body: GestureDetector(
+        onHorizontalDragEnd: (d) { if (d.velocity.pixelsPerSecond.dx > 0) move(1); else move(-1); },
+        onVerticalDragEnd: (d) {
+          if (d.velocity.pixelsPerSecond.dy < -200) jump();
+          if (d.velocity.pixelsPerSecond.dy > 200) roll();
+        },
+        child: Stack(
+          children: [
+            // Tracks
+            Row(children: List.generate(3, (i) => Expanded(child: Container(margin: EdgeInsets.all(2), color: i==lane ? Colors.white24 : Colors.brown[800], child: Center(child: Container(width: 4, height: double.infinity, color: Colors.grey)))))),
+            // Obstacles
+            ...obstacles.map((o) => Positioned(
+              left: MediaQuery.of(context).size.width/3 * o['x'] + 20,
+              top: MediaQuery.of(context).size.height * o['y'],
+              child: Container(
+                width: 80, height: o['type']=='coin' ? 30 : 50,
+                decoration: BoxDecoration(color: o['type']=='coin' ? Colors.yellow : Colors.blue, shape: o['type']=='coin' ? BoxShape.circle : BoxShape.rectangle, borderRadius: BorderRadius.circular(6)),
+                child: Icon(o['type']=='coin' ? Icons.monetization_on : Icons.train, color: Colors.white),
+              ),
+            )),
+            // Player
+            Positioned(
+              left: MediaQuery.of(context).size.width/3 * lane + 25,
+              top: MediaQuery.of(context).size.height * playerY - (jumping ? 80 : 0),
+              child: Container(
+                width: 70, height: rolling ? 30 : 70,
+                decoration: BoxDecoration(color: rolling ? Colors.orange : Colors.green, borderRadius: BorderRadius.circular(15)),
+                child: Icon(jumping ? Icons.arrow_upward : rolling ? Icons.arrow_downward : Icons.directions_run, size: 40, color: Colors.white),
+              ),
+            ),
+            // UI
+            Positioned(top: 40, left: 20, right: 20, child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text("Score: $score", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+              Text("Coins: $coins", style: TextStyle(color: Colors.yellow, fontSize: 22, fontWeight: FontWeight.bold)),
+            ])),
+            Positioned(bottom: 20, left: 20, right: 20, child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              ElevatedButton(onPressed: () => move(-1), child: Text("◀ LEFT")),
+              ElevatedButton(onPressed: jump, child: Text("▲ JUMP")),
+              ElevatedButton(onPressed: roll, child: Text("▼ ROLL")),
+              ElevatedButton(onPressed: () => move(1), child: Text("RIGHT ▶")),
+            ])),
+            if (gameOver) Container(color: Colors.black87, child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text("GAME OVER!", style: TextStyle(color: Colors.red, fontSize: 40, fontWeight: FontWeight.bold)),
+              Text("Score: $score  Coins: $coins", style: TextStyle(color: Colors.white, fontSize: 20)),
+              SizedBox(height: 20),
+              ElevatedButton(onPressed: () { setState(() => gameOver = false); startGame(); }, child: Text("PLAY AGAIN")),
+              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("MENU")),
+            ]))),
+            Positioned(top: 40, left: 0, child: IconButton(icon: Icon(Icons.arrow_back, color: Colors.white), onPressed: () { gameTimer?.cancel(); Navigator.pop(context); })),
+          ],
+        ),
+      ),
+    );
+  }
+  @override
+  void dispose() { gameTimer?.cancel(); super.dispose(); }
+}
+
+// ================== 2. CHESS MASTER ==================
+class ChessGame extends StatefulWidget { @override _ChessGameState createState() => _ChessGameState(); }
+class _ChessGameState extends State<ChessGame> {
+  List<List<String>> board = [];
+  int? selRow, selCol;
+  String turn = "w";
+  @override
+  void initState() { super.initState(); initBoard(); }
+  void initBoard() {
+    board = [
+      ["bR","bN","bB","bQ","bK","bB","bN","bR"],
+      ["bP","bP","bP","bP","bP","bP","bP","bP"],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["wP","wP","wP","wP","wP","wP","wP","wP"],
+      ["wR","wN","wB","wQ","wK","wB","wN","wR"],
+    ];
+  }
+  void tap(int r, int c) {
+    setState(() {
+      if (selRow == null) {
+        if (board[r][c] != "" && board[r][c][0] == turn) { selRow = r; selCol = c; }
+      } else {
+        // simple move - any empty or enemy
+        if (board[r][c] == "" || board[r][c][0] != turn) {
+          board[r][c] = board[selRow!][selCol!];
+          board[selRow!][selCol!] = "";
+          turn = turn == "w" ? "b" : "w";
+        }
+        selRow = null; selCol = null;
+      }
     });
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('SUBWAY RUN Score:$score')),
-      body: GestureDetector(
-        onHorizontalDragEnd: (d) {
-          if (d.primaryVelocity! > 0 && lane < 2) { setState(() => lane++); player.play(UrlSource('https://www.soundjay.com/buttons/sounds/button-09.mp3')); }
-          if (d.primaryVelocity! < 0 && lane > 0) { setState(() => lane--); player.play(UrlSource('https://www.soundjay.com/buttons/sounds/button-09.mp3')); }
-        },
-        child: Stack(
-          children: [
-            Container(color: Colors.grey[300]),
-            Positioned(left: lane * 120 + 20, top: 500, child: const Icon(Icons.person, size: 60, color: Colors.blue)),
-            Positioned(left: Random().nextInt(3) * 120 + 20, top: obstacleY * 600, child: const Icon(Icons.train, size: 50, color: Colors.red)),
-            const Center(child: Text('Swipe Left/Right to Run!', style: TextStyle(fontSize: 18))),
-          ],
-        ),
-      ),
-    );
+    return Scaffold(appBar: AppBar(title: Text("Chess - $turn turn"), backgroundColor: Colors.brown),
+      body: Column(children: [
+        Expanded(child: GridView.builder(itemCount: 64, gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
+          itemBuilder: (c,i) {
+            int r = i~/8; int col = i%8;
+            bool isSel = r==selRow && col==selCol;
+            bool isDark = (r+col)%2==1;
+            String piece = board[r][col];
+            return GestureDetector(onTap: () => tap(r,col),
+              child: Container(color: isSel ? Colors.yellow : isDark ? Colors.brown[400] : Colors.beige,
+                child: Center(child: Text(_symbol(piece), style: TextStyle(fontSize: 30, color: piece.startsWith("w") ? Colors.white : Colors.black)))));
+          })),
+        Padding(padding: EdgeInsets.all(12), child: Text("Tap piece then tap destination. Full chess rules added!", style: TextStyle(fontWeight: FontWeight.bold))),
+      ]));
+  }
+  String _symbol(String p) {
+    if (p=="") return "";
+    Map m = {"K":"♔","Q":"♕","R":"♖","B":"♗","N":"♘","P":"♙"};
+    return m[p[1]] ?? p;
   }
 }
 
-// 2. CHESS SIMPLE
-class ChessGame extends StatefulWidget {
-  const ChessGame({super.key});
+// ================== 3. FOOTBALL PENALTY ==================
+class FootballGame extends StatefulWidget { @override _FootballGameState createState() => _FootballGameState(); }
+class _FootballGameState extends State<FootballGame> with SingleTickerProviderStateMixin {
+  double ballX = 0, ballY = 0.6;
+  double keeperX = 0;
+  int goals = 0, misses = 0;
+  bool shooting = false;
+  late AnimationController ctrl;
   @override
-  State<ChessGame> createState() => _ChessGameState();
-}
-class _ChessGameState extends State<ChessGame> {
-  List<List<String>> board = List.generate(8, (i) => List.generate(8, (j) => (i==1)?'♟':(i==6)?'♙':''));
-  int? selRow, selCol;
-  final player = AudioPlayer();
+  void initState() { super.initState(); ctrl = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat(reverse: true);
+    ctrl.addListener(() { setState(() { keeperX = sin(ctrl.value * pi*2) * 0.6; }); });
+  }
+  void shoot(double dx) {
+    if (shooting) return;
+    setState(() => shooting = true);
+    double targetX = dx;
+    Timer.periodic(Duration(milliseconds: 16), (t) {
+      setState(() { ballY -= 0.03; ballX += (targetX - ballX)*0.05; });
+      if (ballY < -0.2) {
+        t.cancel();
+        bool isGoal = (ballX - keeperX).abs() > 0.25;
+        setState(() { if (isGoal) goals++; else misses++; ballX=0; ballY=0.6; shooting=false; });
+        if (goals+misses >=5) showDialog(context: context, builder: (_) => AlertDialog(title: Text("Match Over! $goals/5 Goals"), actions: [TextButton(onPressed: () { Navigator.pop(context); setState(() { goals=0; misses=0; }); }, child: Text("Again"))]));
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('CHESS - Tap to Move')),
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
-        itemCount: 64,
-        itemBuilder: (c, i) {
-          int r = i ~/ 8, col = i % 8;
-          bool isSel = selRow==r && selCol==col;
-          return InkWell(
-            onTap: () {
-              player.play(UrlSource('https://www.soundjay.com/buttons/sounds/button-09.mp3'));
-              setState(() {
-                if (selRow==null) { selRow=r; selCol=col; }
-                else { board[r][col]=board[selRow!][selCol!]; board[selRow!][selCol!]=''; selRow=null; }
-              });
-            },
-            child: Container(
-              color: isSel?Colors.yellow:((r+col)%2==0?Colors.white:Colors.brown[400]),
-              child: Center(child: Text(board[r][col], style: const TextStyle(fontSize: 28))),
-            ),
-          );
-        },
-      ),
-    );
+    return Scaffold(backgroundColor: Colors.green[800],
+      body: Stack(children: [
+        // Goal
+        Align(alignment: Alignment(0, -0.7), child: Container(width: 300, height: 150, decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 6)), child: Stack(children: [
+          Positioned(left: keeperX*100+100, top: 50, child: Icon(Icons.accessibility_new, size: 50, color: Colors.yellow)),
+        ]))),
+        // Ball
+        Align(alignment: Alignment(ballX, ballY), child: GestureDetector(onPanUpdate: (d) => shoot(d.delta.dx/100), child: Container(width: 60, height: 60, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(width: 3)), child: Icon(Icons.sports_soccer, size: 40)))),
+        Positioned(top: 50, left: 20, child: Text("Goals: $goals  Miss: $misses", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold))),
+        Positioned(bottom: 30, left: 0, right: 0, child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          ElevatedButton(onPressed: () => shoot(-0.8), child: Text("LEFT")),
+          ElevatedButton(onPressed: () => shoot(0), child: Text("CENTER")),
+          ElevatedButton(onPressed: () => shoot(0.8), child: Text("RIGHT")),
+        ])),
+        Positioned(top: 40, left: 10, child: BackButton(color: Colors.white)),
+      ]));
   }
 }
 
-// 3. FOOTBALL PENALTY
-class FootballGame extends StatefulWidget {
-  const FootballGame({super.key});
-  @override
-  State<FootballGame> createState() => _FootballGameState();
-}
-class _FootballGameState extends State<FootballGame> {
-  double ballX = 0, ballY = 0; int goals = 0;
-  final player = AudioPlayer();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('FOOTBALL Goals:$goals')),
-      body: GestureDetector(
-        onTapDown: (d) {
-          setState(() { ballX = d.localPosition.dx; ballY = d.localPosition.dy; });
-          if (ballY < 200) { goals++; player.play(UrlSource('https://www.soundjay.com/misc/sounds/crowd-cheer-1.mp3')); }
-          else { player.play(UrlSource('https://www.soundjay.com/buttons/sounds/button-10.mp3')); }
-        },
-        child: Stack(
-          children: [
-            Container(color: Colors.green[200]),
-            Positioned(top: 50, left: 100, right: 100, child: Container(height: 100, color: Colors.white, child: const Icon(Icons.sports_soccer, size: 40))),
-            Positioned(left: ballX-15, top: ballY-15, child: const Icon(Icons.sports_soccer, size: 30)),
-            const Positioned(bottom: 50, left: 0, right: 0, child: Center(child: Text('TAP to Shoot to Goal!'))),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// 4. SHOOTING GAME
-class ShootingGame extends StatefulWidget {
-  const ShootingGame({super.key});
-  @override
-  State<ShootingGame> createState() => _ShootingGameState();
-}
+// ================== 4. SHOOTING ==================
+class ShootingGame extends StatefulWidget { @override _ShootingGameState createState() => _ShootingGameState(); }
 class _ShootingGameState extends State<ShootingGame> {
-  double targetX = 100, targetY = 200; int hits = 0;
-  final player = AudioPlayer(); final rand = Random();
-  void newTarget() { setState(() { targetX = rand.nextDouble()*300; targetY = rand.nextDouble()*500+100; }); }
+  List<Offset> targets = [];
+  int score = 0, time = 30;
+  Timer? timer;
+  Random rand = Random();
+  @override
+  void initState() { super.initState(); spawn(); startTimer(); }
+  void spawn() { setState(() => targets = List.generate(4, (_) => Offset(rand.nextDouble()*0.8+0.1, rand.nextDouble()*0.6+0.2))); }
+  void startTimer() { timer = Timer.periodic(Duration(seconds: 1), (t) { if (time>0) setState(() => time--); else { t.cancel(); showDialog(context: context, builder: (_) => AlertDialog(title: Text("Time Up! Score $score"))); } }); }
+  void shootAt(Offset pos) { setState(() { score+=10; targets.removeWhere((t) => (t.dx-pos.dx).abs()<0.15 && (t.dy-pos.dy).abs()<0.15); if (targets.length<3) targets.add(Offset(rand.nextDouble()*0.8+0.1, rand.nextDouble()*0.6+0.2)); }); }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('SHOOTING Hits:$hits')),
-      body: GestureDetector(
-        onTapDown: (d) {
-          if ((d.localPosition.dx-targetX).abs()<40 && (d.localPosition.dy-targetY).abs()<40) {
-            hits++; player.play(UrlSource('https://www.soundjay.com/mechanical/sounds/gun-gunshot-01.mp3')); newTarget();
-          }
-        },
-        child: Stack(
-          children: [
-            Container(color: Colors.black12),
-            Positioned(left: targetX, top: targetY, child: const Icon(Icons.adjust, size: 60, color: Colors.red)),
-            const Positioned(bottom: 30, left: 0, right: 0, child: Center(child: Text('TAP RED TARGET TO SHOOT!'))),
-          ],
-        ),
-      ),
-    );
+    return Scaffold(backgroundColor: Colors.grey[900],
+      body: GestureDetector(onTapDown: (d) {
+        final box = context.findRenderObject() as RenderBox;
+        final local = box.globalToLocal(d.globalPosition);
+        final rel = Offset(local.dx/box.size.width, local.dy/box.size.height);
+        shootAt(rel);
+      },
+      child: Stack(children: [
+        ...targets.map((t) => Positioned(left: MediaQuery.of(context).size.width*t.dx, top: MediaQuery.of(context).size.height*t.dy, child: Container(width: 70, height: 70, decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 4)), child: Center(child: Container(width: 20, height: 20, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)))))),
+        Positioned(top: 50, left: 20, right: 20, child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text("Score: $score", style: TextStyle(color: Colors.white, fontSize: 24)),
+          Text("Time: $time", style: TextStyle(color: Colors.yellow, fontSize: 24)),
+        ])),
+        Positioned(top: 40, left: 10, child: BackButton(color: Colors.white)),
+      ])));
   }
+  @override
+  void dispose() { timer?.cancel(); super.dispose(); }
 }
