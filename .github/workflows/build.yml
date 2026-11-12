@@ -15,18 +15,20 @@ jobs:
         with:
           channel: stable
           flutter-version: 3.24.5
-      - name: Fix missing folders
+      - name: Fix Package Name
         run: |
-          mkdir -p assets/sounds assets/images lib
+          sed -i 's/name: zed_games/name: zed_games/g' pubspec.yaml
+          cat pubspec.yaml | head -5
+          mkdir -p assets/sounds assets/images
           touch assets/sounds/.keep
-      - name: Clean and Recreate Android
+      - name: Recreate Android
         run: |
           rm -rf android
-          flutter create . --platforms android
+          flutter create . --platforms android --project-name zed_games --org com.example
       - name: Add AdMob
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          grep -q "APPLICATION_ID" $MANIFEST || sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"\/>' $MANIFEST
+          sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"\/>' $MANIFEST
       - name: Pub Get
         run: flutter pub get
       - name: Build APK
