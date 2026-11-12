@@ -33,7 +33,7 @@ jobs:
               <application
                   android:label="Zed Games"
                   android:name="${applicationName}"
-                  android:icon="@mipmap/launcher_icon">
+                  android:icon="@mipmap/ic_launcher">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
@@ -53,7 +53,6 @@ jobs:
               </application>
           </manifest>
           EOF
-          cat android/app/src/main/AndroidManifest.xml
       - name: Pub Get
         run: flutter pub get
       - name: Build APK
