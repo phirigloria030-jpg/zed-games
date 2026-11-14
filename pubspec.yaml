@@ -1,13 +1,13 @@
 name: zed_games
-description: Zed Games Zambia V5
+description: Zed Games Zambia V8
 publish_to: 'none'
-version: 5.0.0+6
+version: 8.0.0+1
 environment:
   sdk: '>=3.0.0 <4.0.0'
 dependencies:
   flutter:
     sdk: flutter
-  audioplayers: 5.2.1
+  audioplayers: ^6.4.0
 
 flutter:
   uses-material-design: true
