@@ -22,8 +22,8 @@ class MainMenu extends StatelessWidget {
   @override Widget build(BuildContext context){
     return Scaffold(backgroundColor: Color(0xFF0A2A0A), body: SafeArea(child: Column(children: [
       SizedBox(height:15),
-      Text('ZED GAMES V9', style: TextStyle(color: Colors.yellow, fontSize:34, fontWeight: FontWeight.w900)),
-      Text('FIXED GROUND + JOYSTICK + REAL WAR 🔊', style: TextStyle(color: Colors.white, fontSize:11)),
+      Text('ZED GAMES V9.1', style: TextStyle(color: Colors.yellow, fontSize:34, fontWeight: FontWeight.w900)),
+      Text('FIXED BUILD ERROR ✅', style: TextStyle(color: Colors.white, fontSize:11)),
       Spacer(),
       _btn(context,'SUBWAY ON GROUND + POLICE CHASE',Colors.blue,SubwayV9()),
       _btn(context,'FOOTBALL 22 CARTOON + JOYSTICK FIX',Colors.green,FootballV9()),
@@ -41,7 +41,7 @@ class MainMenu extends StatelessWidget {
   Widget _btn(BuildContext c,String t,Color col,Widget go){ return Container(margin: EdgeInsets.symmetric(horizontal:14,vertical:6), child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: col, minimumSize: Size(double.infinity,58)), onPressed: (){ SoundManager.play('click.mp3'); Navigator.push(c, MaterialPageRoute(builder: (_)=> go)); }, child: Text(t, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize:11)))); }
 }
 
-// ================= SUBWAY V9 - REAL GROUND =================
+// SUBWAY V9
 class SubwayV9 extends StatefulWidget { @override State<SubwayV9> createState()=> _SubwayV9State(); }
 class _SubwayV9State extends State<SubwayV9> {
   int lane=1; double jump=0; bool jumping=false; double dist=0, speed=0.04; int coins=0,best=0;
@@ -67,11 +67,11 @@ class _SubwayV9State extends State<SubwayV9> {
   @override Widget build(BuildContext context){
     double sw=MediaQuery.of(context).size.width, sh=MediaQuery.of(context).size.height;
     return Scaffold(body: Stack(children: [
-      Container(color: Color(0xFF5D4037)), // DARK GROUND
+      Container(color: Color(0xFF5D4037)),
       CustomPaint(size: Size.infinite, painter: RealGroundPainter()),
       ...trains.map((o){ double z=o['z']; if(z<-1||z>16) return SizedBox() as Widget; double sc=1.0/(z*0.24+1); if(sc<0.12) return SizedBox() as Widget; double y=sh*(0.28+0.55*(1-sc)); double off=(o['lane']-1)*120*sc; double x=sw/2+off-40*sc; return Positioned(left:x, top:y, child: Transform.scale(scale: sc*1.5, child: Container(width:80,height: o['type']==1?22:50, decoration: BoxDecoration(color: o['type']==1? Colors.grey[800]: Color(0xFF1565C0), border: Border.all(color: Colors.yellow, width:2)), child: Icon(o['type']==1? Icons.horizontal_rule: Icons.train, color: Colors.white)))); }).toList(),
       ...coinsL.map((c){ double z=c['z']; if(z<-1||z>16) return SizedBox() as Widget; double sc=1.0/(z*0.24+1); double y=sh*(0.28+0.55*(1-sc)); double off=(c['lane']-1)*120*sc; double x=sw/2+off-10*sc; return Positioned(left:x, top:y, child: Transform.scale(scale: sc, child: Text('🪙', style: TextStyle(fontSize:30)))); }).toList(),
-      Align(alignment: Alignment((lane-1)*0.70, 0.50-jump), child: Column(children: [Container(padding: EdgeInsets.symmetric(horizontal:6,vertical:2), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(5)), child: Text('ZED BOY', style: TextStyle(color: Colors.yellow,fontSize:8,fontWeight: FontWeight.bold))), Text(jumping? '🦸🏾‍♂️': '🏃🏾‍♂️', style: TextStyle(fontSize:48, shadows: [Shadow(color: Colors.black, blurRadius:6)]))])),
+      Align(alignment: Alignment((lane-1)*0.70, 0.50-jump), child: Column(children: [Container(padding: EdgeInsets.symmetric(horizontal:6,vertical:2), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(5)), child: Text('ZED BOY', style: TextStyle(color: Colors.yellow,fontSize:8,fontWeight: FontWeight.bold))), Text(jumping? '🦸🏾‍♂️': '🏃🏾‍♂️', style: TextStyle(fontSize:48))])),
       Align(alignment: Alignment((lane-1)*0.70 + 0.18, 0.70), child: Column(children: [Text('👮‍♂️', style: TextStyle(fontSize: 36+sin(runAnim)*2)), Container(color: Colors.red, padding: EdgeInsets.symmetric(horizontal:4,vertical:1), child: Text('CATCH HIM!', style: TextStyle(color: Colors.white, fontSize:7, fontWeight: FontWeight.bold)))])),
       Positioned(top:30,left:10,right:10, child: Row(children: [Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20)), child: Text('SPD ${ (speed*100).toInt()} DIST ${(dist*10).toInt()}', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize:11))), Spacer(), Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20)), child: Text('🪙 $coins BEST $best', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold))) ])),
       Positioned(bottom:10,left:10,right:10, child: Row(children: [Expanded(child: ElevatedButton(onPressed: (){ if(lane>0){ setState(()=> lane--); SoundManager.play('click.mp3'); } }, child: Text('◀ LEFT'))), SizedBox(width:8), Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow[700]), onPressed: doJump, child: Text('JUMP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)))), SizedBox(width:8), Expanded(child: ElevatedButton(onPressed: (){ if(lane<2){ setState(()=> lane++); SoundManager.play('click.mp3'); } }, child: Text('RIGHT ▶')))])),
@@ -81,14 +81,7 @@ class _SubwayV9State extends State<SubwayV9> {
 class RealGroundPainter extends CustomPainter {
   @override void paint(Canvas c,Size s){
     Paint ground=Paint()..color=Color(0xFF3E2723);
-    Paint groundLight=Paint()..color=Color(0xFF6D4C41);
     c.drawRect(Rect.fromLTWH(0, s.height*0.50, s.width, s.height*0.50), ground);
-    // Draw ground perspective lines
-    for(int i=0;i<20;i++){
-      double sc=1.0- i/25.0;
-      double y=s.height*(0.50 + 0.50*(1-sc));
-      c.drawLine(Offset(s.width*0.1, y), Offset(s.width*0.9, y), groundLight..strokeWidth=1*sc);
-    }
     Paint rail=Paint()..color=Colors.black87..strokeWidth=4; Paint sleeper=Paint()..color=Color(0xFF4E342E);
     for(int lane=-1;lane<=1;lane++){
       for(int i=0;i<30;i++){
@@ -104,11 +97,11 @@ class RealGroundPainter extends CustomPainter {
   @override bool shouldRepaint(covariant CustomPainter o)=> false;
 }
 
-// ================= FOOTBALL V9 - JOYSTICK FIXED + 22 CARTOON =================
+// FOOTBALL V9 - FIXED JOYSTICK - NO MORE ERROR
 class FootballV9 extends StatefulWidget { @override State<FootballV9> createState()=> _FootballV9State(); }
 class _FootballV9State extends State<FootballV9> {
   List<Map> my=[]; List<Map> en=[]; double bx=0,by=0; int myScore=0,enScore=0; int sel=9; double ballVX=0,ballVY=0; bool ballFree=false; Timer? aiTimer; Random r=Random(); List<Map> myF=[], enF=[];
-  Offset _joy=Offset(0,0); Offset _joyStart=Offset(0,0);
+  Offset _joy=Offset(0,0);
   @override void initState(){
     super.initState();
     myF=[{'x':0.0,'y':0.85,'n':1},{'x':-0.6,'y':0.6,'n':2},{'x':-0.2,'y':0.65,'n':4},{'x':0.2,'y':0.65,'n':5},{'x':0.6,'y':0.6,'n':3},{'x':-0.5,'y':0.3,'n':6},{'x':0.0,'y':0.35,'n':8},{'x':0.5,'y':0.3,'n':10},{'x':-0.4,'y':0.0,'n':7},{'x':0.0,'y':-0.05,'n':9},{'x':0.4,'y':0.0,'n':11}];
@@ -117,14 +110,12 @@ class _FootballV9State extends State<FootballV9> {
     aiTimer=Timer.periodic(Duration(milliseconds:50), (t){
       if(!mounted) return;
       setState((){
-        // JOYSTICK MOVE - FIXED!
         if(_joy.distance>0.05){
           my[sel]['x']=(my[sel]['x']+_joy.dx*0.035).clamp(-0.85,0.85);
           my[sel]['y']=(my[sel]['y']+_joy.dy*0.035).clamp(-0.9,0.9);
           if(!ballFree && (my[sel]['x']-bx).abs()<0.13 && (my[sel]['y']-by).abs()<0.13){ bx=my[sel]['x']; by=my[sel]['y']-0.06; }
         }
         if(ballFree){ bx+=ballVX; by+=ballVY; ballVX*=0.985; ballVY*=0.985; if(bx.abs()>0.92){ bx=bx.clamp(-0.92,0.92); ballVX*=-0.5; } if(by<-0.97){ if(bx.abs()<0.28){ myScore++; SoundManager.play('coin.mp3'); resetBall(); } else { by=-0.92; ballVY*=-0.5; } } if(by>0.97){ if(bx.abs()<0.28){ enScore++; SoundManager.play('shoot.mp3'); resetBall(); } else { by=0.92; ballVY*=-0.5; } } if(ballVX.abs()<0.004 && ballVY.abs()<0.004) ballFree=false; }
-        // ENEMY AI - chase ball
         int closestEn=-1; double cd=10; for(int i=0;i<en.length;i++){ double d=sqrt(pow(en[i]['x']-bx,2)+pow(en[i]['y']-by,2)); if(d<cd){ cd=d; closestEn=i; } }
         if(closestEn!=-1){ double dx=bx-en[closestEn]['x'], dy=by-en[closestEn]['y'], len=sqrt(dx*dx+dy*dy); if(len>0.01){ en[closestEn]['x']+=(dx/len)*0.018; en[closestEn]['y']+=(dy/len)*0.018; } if(cd<0.11 && !ballFree){ bx=en[closestEn]['x']; by=en[closestEn]['y']+0.06; if(r.nextDouble()<0.05){ ballFree=true; ballVX=(r.nextDouble()-0.5)*0.07; ballVY=0.11; SoundManager.play('shoot.mp3'); } } }
         for(int i=0;i<en.length;i++){ if(i!=closestEn){ double dx=enF[i]['x']-en[i]['x'], dy=enF[i]['y']-en[i]['y']; en[i]['x']+=dx*0.02; en[i]['y']+=dy*0.02; } }
@@ -137,37 +128,30 @@ class _FootballV9State extends State<FootballV9> {
   void passBall(){ if(ballFree) return; int nearest=-1; double nd=10; for(int i=0;i<my.length;i++){ if(i==sel) continue; double d=sqrt(pow(my[i]['x']-bx,2)+pow(my[i]['y']-by,2)); if(d<nd && d>0.15){ nd=d; nearest=i; } } if(nearest!=-1){ setState((){ ballFree=true; ballVX=(my[nearest]['x']-bx)*0.30; ballVY=(my[nearest]['y']-by)*0.30; SoundManager.play('click.mp3'); }); } }
   @override void dispose(){ aiTimer?.cancel(); super.dispose(); }
   @override Widget build(BuildContext context){
-    return Scaffold(backgroundColor: Color(0xFF2E7D32), appBar: AppBar(title: Text('ZAMBIA $myScore - $enScore ENEMY JOYSTICK FIX'), backgroundColor: Colors.green[900]),
+    return Scaffold(backgroundColor: Color(0xFF2E7D32), appBar: AppBar(title: Text('ZAMBIA $myScore - $enScore ENEMY'), backgroundColor: Colors.green[900]),
       body: Column(children: [
-        // Top team list - cartoon faces
-        Container(color: Colors.black87, padding: EdgeInsets.symmetric(horizontal:4,vertical:3), child: Row(children: [
-          Text('ZAMBIA: ', style: TextStyle(color: Colors.yellow, fontSize:8)),
-          ...my.map((p)=> Text('🧑🏾‍🦱${p['n']}', style: TextStyle(fontSize:10))).toList(),
-          Spacer(),
-          Text('ENEMY: ', style: TextStyle(color: Colors.redAccent, fontSize:8)),
-          ...en.take(5).map((p)=> Text('🧑🏻', style: TextStyle(fontSize:10))).toList(),
-        ])),
+        Container(color: Colors.black87, padding: EdgeInsets.symmetric(horizontal:4,vertical:3), child: Row(children: [Text('ZAMBIA: ', style: TextStyle(color: Colors.yellow, fontSize:8)), ...my.map((p)=> Text('🧑🏾‍🦱${p['n']}', style: TextStyle(fontSize:10))).toList(), Spacer(), Text('ENEMY: ', style: TextStyle(color: Colors.redAccent, fontSize:8)), ...en.take(5).map((p)=> Text('🧑🏻', style: TextStyle(fontSize:10))).toList()])),
         Expanded(child: Container(color: Color(0xFF4CAF50), child: Stack(children: [
           CustomPaint(size: Size.infinite, painter: FieldPainter()),
           ...en.map((p)=> Align(alignment: Alignment(p['x'],p['y']), child: Column(children: [Text('🧑🏻‍🦱', style: TextStyle(fontSize:22)), Container(width:26,height:14,decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(7), border: Border.all(color: Colors.white)), child: Center(child: Text(p['n'].toString(), style: TextStyle(color: Colors.white,fontSize:9,fontWeight: FontWeight.bold))))]))).toList(),
           ...my.asMap().entries.map((e){ int i=e.key; var p=e.value; bool s=i==sel; return Align(alignment: Alignment(p['x'],p['y']), child: GestureDetector(onTap: ()=> setState(()=> sel=i), child: Column(children: [Container(decoration: BoxDecoration(color: s? Colors.yellow: Colors.transparent, shape: BoxShape.circle), child: Text(s? '🏃🏾‍♂️': '🧑🏾‍🦱', style: TextStyle(fontSize: s?30:22))), Container(width: s?32:26,height: s?16:14,decoration: BoxDecoration(color: s? Colors.yellow: Color(0xFF1B5E20), borderRadius: BorderRadius.circular(8), border: Border.all(color: s? Colors.black: Colors.white, width: s?2:1)), child: Center(child: Text(p['n'].toString(), style: TextStyle(color: s? Colors.black: Colors.white, fontWeight: FontWeight.bold, fontSize: s?11:9))))]))); }).toList(),
-          Align(alignment: Alignment(bx,by), child: Text('⚽', style: TextStyle(fontSize:28, shadows: [Shadow(color: Colors.black, blurRadius:4)]))),
+          Align(alignment: Alignment(bx,by), child: Text('⚽', style: TextStyle(fontSize:28))),
         ]))),
-        // JOYSTICK + BUTTONS - FIXED CONTROL
         Container(color: Colors.black87, padding: EdgeInsets.all(8), child: Row(children: [
-          // JOYSTICK BASE
           GestureDetector(
-            onPanStart: (d){ _joyStart=d.localPosition; },
-            onPanUpdate: (d){ 
-              Offset diff=d.localPosition - Offset(50,50);
-              double dist=diff.distance; if(dist>40) diff=diff/distance*40;
+            onPanUpdate: (d){
+              Offset diff = d.localPosition - Offset(50,50);
+              double distValue = diff.distance;
+              if(distValue>40){
+                diff = diff / distValue * 40;
+              }
               setState(()=> _joy=Offset(diff.dx/40, diff.dy/40));
             },
             onPanEnd: (_){ setState(()=> _joy=Offset(0,0)); },
             child: Container(width:100,height:100,decoration: BoxDecoration(color: Colors.grey[800], shape: BoxShape.circle, border: Border.all(color: Colors.white30, width:2)), child: Center(child: Transform.translate(offset: Offset(_joy.dx*30, _joy.dy*30), child: Container(width:45,height:45,decoration: BoxDecoration(color: Colors.yellow, shape: BoxShape.circle, border: Border.all(color: Colors.black, width:2)), child: Icon(Icons.open_with, size:22))))),
           ),
           SizedBox(width:10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('CONTROL #${my[sel]['n']} - DRAG YELLOW JOYSTICK!', style: TextStyle(color: Colors.yellow, fontSize:11, fontWeight: FontWeight.bold)), Text('You can now move! Tap cartoon to switch player', style: TextStyle(color: Colors.white70, fontSize:9)), SizedBox(height:4), Row(children: [Container(width:10,height:10, decoration: BoxDecoration(color: _joy.distance>0.1? Colors.green: Colors.grey, shape: BoxShape.circle)), SizedBox(width:5), Text(_joy.distance>0.1? 'MOVING!':'STOPPED', style: TextStyle(color: Colors.white, fontSize:9))]) ])),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('CONTROL #${my[sel]['n']} - DRAG JOYSTICK!', style: TextStyle(color: Colors.yellow, fontSize:11, fontWeight: FontWeight.bold)), Text('Drag yellow circle to move', style: TextStyle(color: Colors.white70, fontSize:9)), SizedBox(height:4), Row(children: [Container(width:10,height:10, decoration: BoxDecoration(color: _joy.distance>0.1? Colors.green: Colors.grey, shape: BoxShape.circle)), SizedBox(width:5), Text(_joy.distance>0.1? 'MOVING!':'STOPPED', style: TextStyle(color: Colors.white, fontSize:9))]) ])),
           Column(children: [
             ElevatedButton(onPressed: passBall, style: ElevatedButton.styleFrom(backgroundColor: Colors.white, minimumSize: Size(70,36)), child: Text('PASS', style: TextStyle(color: Colors.black, fontSize:11, fontWeight: FontWeight.bold))),
             SizedBox(height:6),
@@ -180,7 +164,6 @@ class _FootballV9State extends State<FootballV9> {
 }
 class FieldPainter extends CustomPainter { @override void paint(Canvas c,Size s){ Paint p=Paint()..color=Colors.white..strokeWidth=2..style=PaintingStyle.stroke; c.drawRect(Rect.fromLTWH(s.width*0.05,s.height*0.02,s.width*0.9,s.height*0.96), p); c.drawLine(Offset(s.width*0.05,s.height*0.5), Offset(s.width*0.95,s.height*0.5), p); c.drawCircle(Offset(s.width*0.5,s.height*0.5), 35, p); c.drawRect(Rect.fromLTWH(s.width*0.35,s.height*0.02,s.width*0.3,s.height*0.12), p); c.drawRect(Rect.fromLTWH(s.width*0.35,s.height*0.86,s.width*0.3,s.height*0.12), p); } @override bool shouldRepaint(covariant CustomPainter o)=> false; }
 
-// ================= CHESS V8 SAME (FINE) =================
 class ChessV8 extends StatefulWidget { @override State<ChessV8> createState()=> _ChessV8State(); }
 class _ChessV8State extends State<ChessV8> {
   List<String> board=List.generate(64, (i){ if(i<16) return i<8? '♜♞♝♛♚♝♞♜'[i]: '♟'; if(i>47) return i>55? '♖♘♗♕♔♗♘♖'[i-56]: '♙'; return ''; });
@@ -193,7 +176,6 @@ class _ChessV8State extends State<ChessV8> {
   @override Widget build(BuildContext context){ return Scaffold(backgroundColor: Color(0xFFEFEBE9), appBar: AppBar(title: Text(gameOver? winner: status), backgroundColor: gameOver? Colors.red: Colors.brown[700]), body: Stack(children: [Column(children: [Container(padding: EdgeInsets.all(10), color: gameOver? Colors.red[100]: whiteTurn? Colors.green[100]: Colors.orange[100], child: Row(children: [Icon(gameOver? Icons.flag: whiteTurn? Icons.person: Icons.computer), SizedBox(width:8), Expanded(child: Text(status, style: TextStyle(fontWeight: FontWeight.bold, fontSize:12)))])), Expanded(child: GridView.builder(padding: EdgeInsets.all(8), gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:8), itemCount:64, itemBuilder: (c,i){ bool w=(i~/8 + i%8)%2==0; bool s=sel==i; bool canMove=sel!=null && getMoves(sel!).contains(i); return GestureDetector(onTap: (){ if(gameOver || !whiteTurn) return; setState((){ if(sel==null){ if(board[i]!='' && isWhite(board[i])){ sel=i; SoundManager.play('click.mp3'); } } else { if(getMoves(sel!).contains(i)){ if(board[i]=='♚'){ gameOver=true; winner='YOU WIN - King Eaten!'; } board[i]=board[sel!]; board[sel!]=''; sel=null; whiteTurn=false; SoundManager.play('coin.mp3'); checkGameOver(); if(!gameOver) makeAIMove(); } else if(board[i]!='' && isWhite(board[i])){ sel=i; } else { sel=null; } } }); }, child: Container(decoration: BoxDecoration(color: canMove? Colors.green[300]: s? Colors.yellow: w? Colors.white: Colors.brown[400], border: canMove? Border.all(color: Colors.green, width:3): null), child: Center(child: Text(board[i], style: TextStyle(fontSize:26))))); })), Container(padding: EdgeInsets.all(10), child: Row(children: [ElevatedButton(onPressed: (){ setState((){ board=List.generate(64, (i){ if(i<16) return i<8? '♜♞♝♛♚♝♞♜'[i]: '♟'; if(i>47) return i>55? '♖♘♗♕♔♗♘♖'[i-56]: '♙'; return ''; }); sel=null; whiteTurn=true; gameOver=false; winner=''; status='Your turn - White'; }); }, child: Text('NEW GAME')), Spacer(), Text('Tap white, green = move', style: TextStyle(fontSize:10))]))]), if(gameOver) Container(color: Colors.black87, child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text('♔ GAME OVER ♚', style: TextStyle(color: Colors.yellow, fontSize:32, fontWeight: FontWeight.bold)), SizedBox(height:10), Text(winner, style: TextStyle(color: Colors.white, fontSize:20, fontWeight: FontWeight.bold), textAlign: TextAlign.center), SizedBox(height:20), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow, padding: EdgeInsets.symmetric(horizontal:40,vertical:15)), onPressed: (){ setState((){ board=List.generate(64, (i){ if(i<16) return i<8? '♜♞♝♛♚♝♞♜'[i]: '♟'; if(i>47) return i>55? '♖♘♗♕♔♗♘♖'[i-56]: '♙'; return ''; }); sel=null; whiteTurn=true; gameOver=false; winner=''; status='Your turn - White'; }); }, child: Text('PLAY AGAIN', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))), SizedBox(height:10), ElevatedButton(onPressed: ()=> Navigator.pop(context), child: Text('MENU'))])))])); }
 }
 
-// ================= SHOOTING V9 - IMPROVED REAL WAR =================
 class ShootingV9 extends StatefulWidget { @override State<ShootingV9> createState()=> _ShootingV9State(); }
 class _ShootingV9State extends State<ShootingV9> {
   List<Map> enemies=[]; List<Map> myB=[]; List<Map> enB=[]; List<Map> walls=[]; double px=0, py=0.8; int hp=100, score=0, ammo=30; Timer? loop, enTimer; Random r=Random(); bool isHiding=false;
@@ -242,7 +224,7 @@ class _ShootingV9State extends State<ShootingV9> {
         ...enemies.map((e){ String icon = e['alive']? (e['type']==0? '👨🏻‍✈️🔫': e['type']==1? '👨🏿‍🦱🔫': '🥷🔫'): '💀'; return Align(alignment: Alignment(e['x'], e['y']), child: Container(width:54,height:54, decoration: BoxDecoration(color: e['alive']? Color(0xFFB71C1C): Colors.black54, borderRadius: BorderRadius.circular(10), border: Border.all(color: e['alive']? Colors.yellow: Colors.grey, width: e['alive']?2:1)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(icon, style: TextStyle(fontSize:22)), Container(width:30,height:4, decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(2)))]))); }).toList(),
         ...myB.map((b)=> Align(alignment: Alignment(b['x'], b['y']), child: Container(width:9,height:15,decoration: BoxDecoration(color: Colors.yellow, borderRadius: BorderRadius.circular(4), boxShadow: [BoxShadow(color: Colors.yellow, blurRadius:8)])))).toList(),
         ...enB.map((b)=> Align(alignment: Alignment(b['x'], b['y']), child: Container(width:7,height:12,decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(4))))).toList(),
-        Align(alignment: Alignment(px, py), child: Column(children: [Container(padding: EdgeInsets.symmetric(horizontal:6,vertical:2), decoration: BoxDecoration(color: isHiding? Colors.green: Colors.blue, borderRadius: BorderRadius.circular(8)), child: Text(isHiding? 'HIDDEN 🛡️ SAFE': 'YOU 🔫 FOLLOW & KILL', style: TextStyle(color: Colors.white, fontSize:8, fontWeight: FontWeight.bold))), Text('🫡🔫', style: TextStyle(fontSize:40, shadows: [Shadow(color: Colors.black, blurRadius:6)])), Container(padding: EdgeInsets.symmetric(horizontal:6,vertical:1), decoration: BoxDecoration(color: hp>40? Colors.green: Colors.red, borderRadius: BorderRadius.circular(6)), child: Text('HP $hp%', style: TextStyle(color: Colors.white, fontSize:9, fontWeight: FontWeight.bold)))])),
+        Align(alignment: Alignment(px, py), child: Column(children: [Container(padding: EdgeInsets.symmetric(horizontal:6,vertical:2), decoration: BoxDecoration(color: isHiding? Colors.green: Colors.blue, borderRadius: BorderRadius.circular(8)), child: Text(isHiding? 'HIDDEN 🛡️ SAFE': 'YOU 🔫 FOLLOW & KILL', style: TextStyle(color: Colors.white, fontSize:8, fontWeight: FontWeight.bold))), Text('🫡🔫', style: TextStyle(fontSize:40)), Container(padding: EdgeInsets.symmetric(horizontal:6,vertical:1), decoration: BoxDecoration(color: hp>40? Colors.green: Colors.red, borderRadius: BorderRadius.circular(6)), child: Text('HP $hp%', style: TextStyle(color: Colors.white, fontSize:9, fontWeight: FontWeight.bold)))])),
         Positioned(top:0,left:0,right:0,height:MediaQuery.of(context).size.height*0.68, child: GestureDetector(onTapDown: (d){ double ax=(d.globalPosition.dx/MediaQuery.of(context).size.width)*2-1; double ay=(d.globalPosition.dy/MediaQuery.of(context).size.height)*2-1; shoot(ax, ay); }, child: Container(color: Colors.transparent))),
         Positioned(bottom:5,left:10,right:10, child: Column(children: [
           Text(isHiding? '🛡️ HIDDEN - ENEMIES CANT SEE YOU!': '⚠️ VISIBLE - ENEMIES SHOOTING! HIDE BEHIND WALLS!', style: TextStyle(color: isHiding? Colors.greenAccent: Colors.redAccent, fontSize:10, fontWeight: FontWeight.bold)),
